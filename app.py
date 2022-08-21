@@ -46,9 +46,11 @@ if uploaded_files is not  None:
              data =extract_mfcc(paths[-1])
              data=np.array(data).reshape(1,40)
         
-        btn2 = st.sidebar.button("English")  
-        btn3 = st.sidebar.button("Arabic")    
-        if btn3:
+        selected=st.sidebar.selectbox('Select Language',[' ','Arabic','English'])   
+        btn2 = st.sidebar.button('Emotions :)')
+        print(btn2)
+        if btn2: 
+            if selected == 'Arabic':
                 # get the data of strings of labels saved in dictionary for example high,low,neutral,etc
                 fLabels = open('Data/Arabic/Arlabels_dict.json','r')
                 Arlabels_dict=json.load(fLabels)
@@ -67,7 +69,7 @@ if uploaded_files is not  None:
                              st.sidebar.text('the emotion dominates the record is '+Arlabels_dict[label])
                 else:
                              st.sidebar.text('the emotion dominates the record is '+Arlabels_dict[emotions_labels])                                   
-        elif btn2:
+            elif selected=='English':
                 # get the data of strings of labels saved in dictionary for example sadness,anger,fear,etc
                 print(1)
                 fLabels = open('Data/English/Enlabels_dict.json','r')
