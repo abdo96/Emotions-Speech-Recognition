@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import xgboost as xgb
@@ -8,10 +9,29 @@ from tensorflow.keras.models import load_model
 import json
 import streamlit.components.v1 as components
 st.cache(suppress_st_warning=True)
-
-
-
 st.title("Speech Emotions Recognition")
+
+def  select_box_event_handler():
+        if not "initialized" in st.session_state:
+                   st.session_state.return_values = []
+                   st.session_state.change_values = []
+                   st.session_state.initialized = True
+                   st.session_state.first_return = True
+
+        def capture_change_value():
+                st.session_state.change_values.append(st.session_state.select_box)
+
+        def capture_return_value(select_box):
+               if st.session_state.first_return:
+                  capture_change_value()
+                  st.session_state.first_return = False
+               st.session_state.return_values.append(select_box)
+               
+
+        capture_return_value(st.selectbox("Select Languages",[' ','Arabic','English'], key="select_box", on_change=capture_change_value))
+
+ 
+select_box_event_handler()
 
 def extract_mfcc(filename):
     """extract mel frequency cepstral coefficients"""
@@ -45,12 +65,10 @@ if uploaded_files is not  None:
         else:     
              data =extract_mfcc(paths[-1])
              data=np.array(data).reshape(1,40)
+       
         
-        selected=st.sidebar.selectbox('Select Language',[' ','Arabic','English'])   
-        btn2 = st.sidebar.button('Emotions :)')
-        print(btn2)
-        if btn2: 
-            if selected == 'Arabic':
+    
+        if st.session_state.change_values[-1] == 'Arabic':
                 # get the data of strings of labels saved in dictionary for example high,low,neutral,etc
                 fLabels = open('Data/Arabic/Arlabels_dict.json','r')
                 Arlabels_dict=json.load(fLabels)
@@ -63,26 +81,24 @@ if uploaded_files is not  None:
                 emotions_labels =XgbC.predict(np.array(data)) 
                 # sometimes the predicted values is probabilities so choose the index of the highest probability 
                 # in each sample for example [1.4,2.3, 3.5] the highest probability in the index 2   
-                emotions_labels = np.argmax(emotions_labels,axis=1)                
+                emotions_labels = np.argmax(emotions_labels,axis=1)   
+                #print(Arlabels_dict.keys())             
                 if(len(emotions_labels)>1):
                       for label in emotions_labels:     
-                             st.sidebar.text('the emotion dominates the record is '+Arlabels_dict[label])
-                else:
-                             st.sidebar.text('the emotion dominates the record is '+Arlabels_dict[emotions_labels])                                   
-            elif selected=='English':
+                             st.sidebar.text('the emotion is '+Arlabels_dict[label])
+                elif(len(emotions_labels) == 1):
+                             st.sidebar.text('the emotion is '+Arlabels_dict[str(emotions_labels[-1])])                                   
+        elif st.session_state.change_values[-1]=='English':
                 # get the data of strings of labels saved in dictionary for example sadness,anger,fear,etc
-                print(1)
                 fLabels = open('Data/English/Enlabels_dict.json','r')
                 Enlabels_dict=json.load(fLabels)
                 LSTMEnglish_Speech=load_model('models/English/LSTMEnSpeechEmotions.h5')
                 emotions_labels=LSTMEnglish_Speech.predict(np.expand_dims(data,-1))
-                print(emotions_labels)
+                emotions_labels = np.argmax(emotions_labels,axis=1)
+                emotions_labels=emotions_labels.tolist()
                 if(len(emotions_labels)>1):
-                      for label in emotions_labels:     
-                             st.sidebar.text('the emotion dominates the record is '+Enlabels_dict[label])
-                else:
-                             st.sidebar.text('the emotion dominates the record is '+Enlabels_dict[emotions_labels])       
+                      for label in emotions_labels:      
+                             st.sidebar.text('the emotion is '+Enlabels_dict[label])
+                elif(len(emotions_labels) == 1):
+                             st.sidebar.text('the emotion is '+Enlabels_dict[str(emotions_labels[-1])])       
     
-        
-
-
