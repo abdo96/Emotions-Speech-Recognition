@@ -74,14 +74,15 @@ if uploaded_files is not  None:
                 Arlabels_dict=json.load(fLabels)
                 # prepare the model and load it 
                 XgbC=xgb.XGBClassifier(n_estimators=1024)
-                XgbC.load_model('models/Arabic/XgbArSpeechEmotions.json')
+                XgbC.load_model('models/Arabic/74_Arabic_Speech_model.json')
                 # check if uploaded data is one sample or more if it's more
                 # use row stack otherwise predic
                 #print(np.array(data).shape)
                 emotions_labels =XgbC.predict(np.array(data)) 
                 # sometimes the predicted values is probabilities so choose the index of the highest probability 
-                # in each sample for example [1.4,2.3, 3.5] the highest probability in the index 2   
-                emotions_labels = np.argmax(emotions_labels,axis=1)   
+                # in each sample for example [1.4,2.3, 3.5] the highest probability in the index 2
+                if(len(emotions_labels) > 1): 
+                    emotions_labels = np.argmax(emotions_labels,axis=1)   
                 #print(Arlabels_dict.keys())             
                 if(len(emotions_labels)>1):
                       for label in emotions_labels:     
@@ -93,7 +94,7 @@ if uploaded_files is not  None:
                 fLabels = open('Data/English/Enlabels_dict.json','r')
                 Enlabels_dict=json.load(fLabels)
                 LSTMEnglish_Speech=load_model('models/English/LSTMEnSpeechEmotions.h5')
-                emotions_labels=LSTMEnglish_Speech.predict(np.expand_dims(data,-1))
+                emotions_labels=LSTMEnglish_Speech.predict(np.array(data))
                 emotions_labels = np.argmax(emotions_labels,axis=1)
                 emotions_labels=emotions_labels.tolist()
                 if(len(emotions_labels)>1):
